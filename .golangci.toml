@@ -42,7 +42,7 @@ allow = [
   'github.com/quic-go/quic-go',
   'github.com/rs/cors',
   'github.com/swaggo/http-swagger',
-  'github.com/sycured/imaginary/docs',
+  'github.com/leknoppix/imaginary/docs',
   'github.com/throttled/throttled',
   'golang.org/x/sys/unix'
 ]

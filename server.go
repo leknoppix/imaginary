@@ -38,7 +38,7 @@ import (
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
 	httpSwagger "github.com/swaggo/http-swagger"
-	_ "github.com/sycured/imaginary/docs"
+	_ "github.com/leknoppix/imaginary/docs"
 )
 
 type ServerOptions struct {

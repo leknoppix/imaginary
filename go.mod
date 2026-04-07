@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-module github.com/sycured/imaginary
+module github.com/leknoppix/imaginary
 
 go 1.24.4
 

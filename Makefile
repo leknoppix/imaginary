@@ -40,11 +40,11 @@ benchmark: build
 
 docker-build:
 	@echo "$(OK_COLOR)==> Building Docker image$(NO_COLOR)"
-	docker build --no-cache=true --build-arg IMAGINARY_VERSION=$(VERSION) -t sycured/imaginary:$(VERSION) .
+	docker build --no-cache=true --build-arg IMAGINARY_VERSION=$(VERSION) -t leknoppix/imaginary:$(VERSION) .
 
 docker-push:
 	@echo "$(OK_COLOR)==> Pushing Docker image v$(VERSION) $(NO_COLOR)"
-	docker push sycured/imaginary:$(VERSION)
+	docker push leknoppix/imaginary:$(VERSION)
 
 docker: docker-build docker-push
 
