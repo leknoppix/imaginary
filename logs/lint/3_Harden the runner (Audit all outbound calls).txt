@@ -1,0 +1,18 @@
+﻿2026-04-07T17:57:10.6825895Z ##[group]Run step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0
+2026-04-07T17:57:10.6826304Z with:
+2026-04-07T17:57:10.6826482Z   egress-policy: audit
+2026-04-07T17:57:10.6826803Z   token: ***
+2026-04-07T17:57:10.6826994Z   disable-telemetry: false
+2026-04-07T17:57:10.6827199Z   disable-sudo: false
+2026-04-07T17:57:10.6827395Z   disable-sudo-and-containers: false
+2026-04-07T17:57:10.6827642Z   disable-file-monitoring: false
+2026-04-07T17:57:10.6827843Z env:
+2026-04-07T17:57:10.6828003Z   STATE_disableSudo: false
+2026-04-07T17:57:10.6828216Z   STATE_disableSudoAndContainers: false
+2026-04-07T17:57:10.6828457Z   STATE_monitorStatusCode: 200
+2026-04-07T17:57:10.6828675Z   STATE_addSummary: true
+2026-04-07T17:57:10.6828880Z   STATE_isTLS: false
+2026-04-07T17:57:10.6829267Z ##[endgroup]
+2026-04-07T17:57:10.7495607Z [harden-runner] main-step
+2026-04-07T17:57:10.7502904Z [32mView security insights and recommended policy at:[0m
+2026-04-07T17:57:10.7503945Z https://app.stepsecurity.io/github/leknoppix/imaginary/actions/runs/24095662099

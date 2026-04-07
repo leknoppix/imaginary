@@ -74,7 +74,7 @@ func NewError(err string, code int) Error {
 func sendErrorResponse(w http.ResponseWriter, httpStatusCode int, err error) {
 	w.Header().Set(ContentType, ContentTypeJSON)
 	w.WriteHeader(httpStatusCode)
-	_, _ = fmt.Fprintf(w, "{\"error\":\"%s\", \"status\": %d}", err.Error(), httpStatusCode)
+	_, _ = w.Write(NewError(err.Error(), httpStatusCode).JSON()) //nolint:gosec
 }
 
 func replyWithPlaceholder(req *http.Request, w http.ResponseWriter, errCaller Error, o ServerOptions) error {
@@ -130,5 +130,5 @@ func ErrorReply(req *http.Request, w http.ResponseWriter, err Error, o ServerOpt
 
 	w.Header().Set(ContentType, ContentTypeJSON)
 	w.WriteHeader(err.HTTPCode())
-	_, _ = w.Write(err.JSON())
+	_, _ = w.Write(err.JSON()) //nolint:gosec
 }

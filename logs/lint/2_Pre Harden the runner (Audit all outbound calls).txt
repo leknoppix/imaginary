@@ -1,0 +1,22 @@
+﻿2026-04-07T17:57:04.2012905Z ##[group]Run step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0
+2026-04-07T17:57:04.2013624Z with:
+2026-04-07T17:57:04.2013815Z   egress-policy: audit
+2026-04-07T17:57:04.2014157Z   token: ***
+2026-04-07T17:57:04.2014344Z   disable-telemetry: false
+2026-04-07T17:57:04.2014564Z   disable-sudo: false
+2026-04-07T17:57:04.2014778Z   disable-sudo-and-containers: false
+2026-04-07T17:57:04.2015045Z   disable-file-monitoring: false
+2026-04-07T17:57:04.2015465Z ##[endgroup]
+2026-04-07T17:57:04.3647057Z [harden-runner] pre-step
+2026-04-07T17:57:04.3647620Z [!] Current Configuration: 
+2026-04-07T17:57:04.3649583Z {"repo":"leknoppix/imaginary","run_id":"24095662099","correlation_id":"3d46bb21-5f28-447c-9762-52ded566ae57","working_directory":"/home/runner/work/imaginary/imaginary","api_url":"https://agent.api.stepsecurity.io/v1","allowed_endpoints":"","egress_policy":"audit","disable_telemetry":false,"disable_sudo":false,"disable_sudo_and_containers":false,"disable_file_monitoring":false,"private":false,"is_github_hosted":true,"is_debug":false,"one_time_key":""}
+2026-04-07T17:57:04.3651267Z 
+2026-04-07T17:57:04.3651684Z [32mView security insights and recommended policy at:[0m
+2026-04-07T17:57:04.3652164Z https://app.stepsecurity.io/github/leknoppix/imaginary/actions/runs/24095662099
+2026-04-07T17:57:04.3652580Z RUNNER_NAME: GitHub Actions 1000000235
+2026-04-07T17:57:04.9184644Z Runner IP Address: 52.161.45.232
+2026-04-07T17:57:04.9185360Z Step Security Job Correlation ID: 3d46bb21-5f28-447c-9762-52ded566ae57
+2026-04-07T17:57:04.9367642Z [!] Checking TLS_STATUS: leknoppix
+2026-04-07T17:57:05.0802105Z [!] TLS_NOT_ENABLED: leknoppix
+2026-04-07T17:57:05.5786720Z [command]/usr/bin/tar xz --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/102e2c8a-62ee-45c3-af11-e768c3b7e458 -f /home/runner/work/_temp/8fc1d1de-a80c-46c5-865c-661b1891ddb0
+2026-04-07T17:57:10.6662553Z Initialized

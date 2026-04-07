@@ -1,0 +1,70 @@
+﻿2026-04-07T17:57:10.7624893Z ##[group]Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+2026-04-07T17:57:10.7625249Z with:
+2026-04-07T17:57:10.7625433Z   repository: leknoppix/imaginary
+2026-04-07T17:57:10.7625835Z   token: ***
+2026-04-07T17:57:10.7626185Z   ssh-strict: true
+2026-04-07T17:57:10.7626406Z   ssh-user: git
+2026-04-07T17:57:10.7626664Z   persist-credentials: true
+2026-04-07T17:57:10.7626944Z   clean: true
+2026-04-07T17:57:10.7627258Z   sparse-checkout-cone-mode: true
+2026-04-07T17:57:10.7627536Z   fetch-depth: 1
+2026-04-07T17:57:10.7627815Z   fetch-tags: false
+2026-04-07T17:57:10.7628053Z   show-progress: true
+2026-04-07T17:57:10.7628307Z   lfs: false
+2026-04-07T17:57:10.7628571Z   submodules: false
+2026-04-07T17:57:10.7628939Z   set-safe-directory: true
+2026-04-07T17:57:10.7629513Z ##[endgroup]
+2026-04-07T17:57:10.8561578Z Syncing repository: leknoppix/imaginary
+2026-04-07T17:57:10.8563103Z ##[group]Getting Git version info
+2026-04-07T17:57:10.8563561Z Working directory is '/home/runner/work/imaginary/imaginary'
+2026-04-07T17:57:10.8564369Z [command]/usr/bin/git version
+2026-04-07T17:57:10.8605276Z git version 2.53.0
+2026-04-07T17:57:10.8630833Z ##[endgroup]
+2026-04-07T17:57:10.8644712Z Temporarily overriding HOME='/home/runner/work/_temp/149eeaa4-11c4-41c5-a088-b4e3b623b92a' before making global git config changes
+2026-04-07T17:57:10.8646116Z Adding repository directory to the temporary git global config as a safe directory
+2026-04-07T17:57:10.8656686Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/imaginary/imaginary
+2026-04-07T17:57:10.8688259Z Deleting the contents of '/home/runner/work/imaginary/imaginary'
+2026-04-07T17:57:10.8692063Z ##[group]Initializing the repository
+2026-04-07T17:57:10.8695495Z [command]/usr/bin/git init /home/runner/work/imaginary/imaginary
+2026-04-07T17:57:10.8799848Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-04-07T17:57:10.8804166Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-04-07T17:57:10.8805416Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-04-07T17:57:10.8806232Z hint: call:
+2026-04-07T17:57:10.8806775Z hint:
+2026-04-07T17:57:10.8807355Z hint: 	git config --global init.defaultBranch <name>
+2026-04-07T17:57:10.8808038Z hint:
+2026-04-07T17:57:10.8808570Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-04-07T17:57:10.8809869Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-04-07T17:57:10.8810614Z hint:
+2026-04-07T17:57:10.8810982Z hint: 	git branch -m <name>
+2026-04-07T17:57:10.8811623Z hint:
+2026-04-07T17:57:10.8812276Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-04-07T17:57:10.8813638Z Initialized empty Git repository in /home/runner/work/imaginary/imaginary/.git/
+2026-04-07T17:57:10.8816157Z [command]/usr/bin/git remote add origin https://github.com/leknoppix/imaginary
+2026-04-07T17:57:10.8851473Z ##[endgroup]
+2026-04-07T17:57:10.8852402Z ##[group]Disabling automatic garbage collection
+2026-04-07T17:57:10.8854923Z [command]/usr/bin/git config --local gc.auto 0
+2026-04-07T17:57:10.8962655Z ##[endgroup]
+2026-04-07T17:57:10.8964228Z ##[group]Setting up auth
+2026-04-07T17:57:10.8964821Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-04-07T17:57:10.8965973Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-04-07T17:57:10.9225732Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-04-07T17:57:10.9257457Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-04-07T17:57:10.9482203Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-04-07T17:57:10.9535517Z ##[endgroup]
+2026-04-07T17:57:10.9536584Z ##[group]Fetching the repository
+2026-04-07T17:57:10.9545626Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +c84f114b3656bc2fa438de4367761e321ab7b4be:refs/remotes/origin/docker
+2026-04-07T17:57:11.9420394Z From https://github.com/leknoppix/imaginary
+2026-04-07T17:57:11.9421132Z  * [new ref]         c84f114b3656bc2fa438de4367761e321ab7b4be -> origin/docker
+2026-04-07T17:57:11.9453716Z ##[endgroup]
+2026-04-07T17:57:11.9454274Z ##[group]Determining the checkout info
+2026-04-07T17:57:11.9456206Z ##[endgroup]
+2026-04-07T17:57:11.9461481Z [command]/usr/bin/git sparse-checkout disable
+2026-04-07T17:57:11.9507406Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-04-07T17:57:11.9537877Z ##[group]Checking out the ref
+2026-04-07T17:57:11.9543231Z [command]/usr/bin/git checkout --progress --force -B docker refs/remotes/origin/docker
+2026-04-07T17:57:11.9746891Z Switched to a new branch 'docker'
+2026-04-07T17:57:11.9754509Z branch 'docker' set up to track 'origin/docker'.
+2026-04-07T17:57:11.9760225Z ##[endgroup]
+2026-04-07T17:57:11.9797330Z [command]/usr/bin/git log -1 --format=%H
+2026-04-07T17:57:11.9823009Z c84f114b3656bc2fa438de4367761e321ab7b4be

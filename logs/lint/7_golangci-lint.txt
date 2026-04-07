@@ -1,0 +1,73 @@
+﻿2026-04-07T18:00:25.2233635Z ##[group]Run golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9
+2026-04-07T18:00:25.2234074Z with:
+2026-04-07T18:00:25.2234345Z   args: --timeout=30m --config=.golangci.toml --issues-exit-code=255
+2026-04-07T18:00:25.2234654Z   version: latest
+2026-04-07T18:00:25.2234826Z   install-mode: binary
+2026-04-07T18:00:25.2235137Z   github-token: ***
+2026-04-07T18:00:25.2235308Z   verify: true
+2026-04-07T18:00:25.2235477Z   only-new-issues: false
+2026-04-07T18:00:25.2235669Z   skip-cache: false
+2026-04-07T18:00:25.2235837Z   skip-save-cache: false
+2026-04-07T18:00:25.2236030Z   problem-matchers: false
+2026-04-07T18:00:25.2236235Z   cache-invalidation-interval: 7
+2026-04-07T18:00:25.2236443Z ##[endgroup]
+2026-04-07T18:00:25.3828753Z ##[group]prepare environment
+2026-04-07T18:00:25.3834130Z Checking for go.mod: go.mod
+2026-04-07T18:00:25.6084561Z Cache hit for: golangci-lint.cache-Linux-2935-91eb515fc903abab71f193c5c17fab18751b41e2
+2026-04-07T18:00:26.1522223Z Received 334018 of 334018 (100.0%), 1.0 MBs/sec
+2026-04-07T18:00:26.1523344Z Cache Size: ~0 MB (334018 B)
+2026-04-07T18:00:26.1556590Z [command]/usr/bin/tar -xf /home/runner/work/_temp/3ac5f003-4564-4787-b45c-37531f4f19b4/cache.tzst -P -C /home/runner/work/imaginary/imaginary --use-compress-program unzstd
+2026-04-07T18:00:26.2512948Z Cache restored successfully
+2026-04-07T18:00:26.2519196Z Restored cache for golangci-lint from key 'golangci-lint.cache-Linux-2935-91eb515fc903abab71f193c5c17fab18751b41e2' in 868ms
+2026-04-07T18:00:26.2520604Z Finding needed golangci-lint version...
+2026-04-07T18:00:26.3220041Z Requested golangci-lint 'latest', using 'v2.11.4', calculation took 69ms
+2026-04-07T18:00:26.3221521Z Installation mode: binary
+2026-04-07T18:00:26.3222193Z Installing golangci-lint binary v2.11.4...
+2026-04-07T18:00:26.3223874Z Downloading binary https://github.com/golangci/golangci-lint/releases/download/v2.11.4/golangci-lint-2.11.4-linux-amd64.tar.gz ...
+2026-04-07T18:00:26.8400529Z [command]/usr/bin/tar xz --overwrite --warning=no-unknown-keyword --overwrite -C /home/runner -f /home/runner/work/_temp/d7677da1-04ba-40fe-8101-c83caf6c44a9
+2026-04-07T18:00:27.1088629Z Installed golangci-lint into /home/runner/golangci-lint-2.11.4-linux-amd64/golangci-lint in 786ms
+2026-04-07T18:00:27.1089719Z Prepared env in 1726ms
+2026-04-07T18:00:27.1090796Z ##[endgroup]
+2026-04-07T18:00:27.1093124Z ##[group]run golangci-lint
+2026-04-07T18:00:27.1100376Z Running [/home/runner/golangci-lint-2.11.4-linux-amd64/golangci-lint config path --config=.golangci.toml] in [/home/runner/work/imaginary/imaginary] ...
+2026-04-07T18:00:27.1917436Z Running [/home/runner/golangci-lint-2.11.4-linux-amd64/golangci-lint config verify --config=.golangci.toml] in [/home/runner/work/imaginary/imaginary] ...
+2026-04-07T18:00:27.4356718Z Running [/home/runner/golangci-lint-2.11.4-linux-amd64/golangci-lint run  --timeout=30m --config=.golangci.toml --issues-exit-code=255] in [/home/runner/work/imaginary/imaginary] ...
+2026-04-07T18:00:28.6124509Z ##[error]getmemorylimit_linux.go:45:14: Error return value of `fmt.Errorf` is not checked (errcheck)
+2026-04-07T18:00:28.6137456Z 			fmt.Errorf("Error reading %s: %v", cgroupMemoryMax, err)
+2026-04-07T18:00:28.6138125Z 			          ^
+2026-04-07T18:00:28.6139397Z ##[error]error.go:77:20: G705: XSS via taint analysis (gosec)
+2026-04-07T18:00:28.6141416Z 	_, _ = fmt.Fprintf(w, "{\"error\":\"%s\", \"status\": %d}", err.Error(), httpStatusCode)
+2026-04-07T18:00:28.6142363Z 	                  ^
+2026-04-07T18:00:28.6143486Z ##[error]error.go:133:16: G705: XSS via taint analysis (gosec)
+2026-04-07T18:00:28.6145030Z 	_, _ = w.Write(err.JSON())
+2026-04-07T18:00:28.6145443Z 	              ^
+2026-04-07T18:00:28.6146292Z ##[error]source_http.go:61:36: G704: SSRF via taint analysis (gosec)
+2026-04-07T18:00:28.6147644Z 		res, err := http.DefaultClient.Do(req)
+2026-04-07T18:00:28.6148788Z 		                                 ^
+2026-04-07T18:00:28.6150361Z ##[error]source_http.go:79:35: G704: SSRF via taint analysis (gosec)
+2026-04-07T18:00:28.6151556Z 	res, err := http.DefaultClient.Do(req)
+2026-04-07T18:00:28.6152484Z 	                                 ^
+2026-04-07T18:00:28.6153315Z ##[error]source_http.go:130:27: G704: SSRF via taint analysis (gosec)
+2026-04-07T18:00:28.6154513Z 	req, _ := http.NewRequest(method, url.String(), nil)
+2026-04-07T18:00:28.6155042Z 	                         ^
+2026-04-07T18:00:28.6156019Z ##[error]getmemorylimit_linux.go:47:14: ST1005: error strings should not be capitalized (staticcheck)
+2026-04-07T18:00:28.6157307Z 			return 0, fmt.Errorf("No limit: %v", err)
+2026-04-07T18:00:28.6157725Z 			          ^
+2026-04-07T18:00:28.6158817Z ##[error]getmemorylimit_linux.go:55:13: ST1005: error strings should not be capitalized (staticcheck)
+2026-04-07T18:00:28.6160581Z 		return 0, fmt.Errorf("Failed to determine memory limit")
+2026-04-07T18:00:28.6160929Z 		          ^
+2026-04-07T18:00:28.6161640Z ##[error]getmemorylimit_linux.go:57:12: ST1005: error strings should not be capitalized (staticcheck)
+2026-04-07T18:00:28.6162544Z 	return 0, fmt.Errorf("Failed to determine memory limit")
+2026-04-07T18:00:28.6162860Z 	          ^
+2026-04-07T18:00:28.6163335Z ##[error]getmemorylimit_linux.go:43:17: unnecessary conversion (unconvert)
+2026-04-07T18:00:28.6164087Z 				return int64(memBytes), nil
+2026-04-07T18:00:28.6164338Z 				            ^
+2026-04-07T18:00:28.6164511Z 10 issues:
+2026-04-07T18:00:28.6164676Z * errcheck: 1
+2026-04-07T18:00:28.6164836Z * gosec: 5
+2026-04-07T18:00:28.6164998Z * staticcheck: 3
+2026-04-07T18:00:28.6165175Z * unconvert: 1
+2026-04-07T18:00:28.6165280Z 
+2026-04-07T18:00:28.6173891Z ##[error]golangci-lint exit with code 255
+2026-04-07T18:00:28.6174684Z Ran golangci-lint in 1173ms
+2026-04-07T18:00:28.6175099Z ##[endgroup]

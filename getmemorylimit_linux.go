@@ -40,11 +40,11 @@ func getMemoryLimit() (int64, error) {
 		if val != "max" {
 			memBytes, err := strconv.ParseInt(val, 10, 64)
 			if err == nil {
-				return int64(memBytes), nil
+				return memBytes, nil
 			}
-			fmt.Errorf("Error reading %s: %v", cgroupMemoryMax, err)
+			return 0, fmt.Errorf("error reading %s: %v", cgroupMemoryMax, err)
 		} else {
-			return 0, fmt.Errorf("No limit: %v", err)
+			return 0, fmt.Errorf("no limit: %v", err)
 		}
 	} else {
 		// Fallback: retrieve the total physical memory of the host.
@@ -52,9 +52,9 @@ func getMemoryLimit() (int64, error) {
 		if err == nil {
 			return memLimit, nil
 		}
-		return 0, fmt.Errorf("Failed to determine memory limit")
+		return 0, fmt.Errorf("failed to determine memory limit")
 	}
-	return 0, fmt.Errorf("Failed to determine memory limit")
+	return 0, fmt.Errorf("failed to determine memory limit")
 }
 
 // getPhysicalMemoryLimit returns the total physical memory of the host in bytes

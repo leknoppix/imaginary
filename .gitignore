@@ -9,6 +9,7 @@ Thumbs.db
 _obj
 _test
 .idea
+.logs
 
 # Architecture specific extensions/prefixes
 *.[568vq]

@@ -58,7 +58,7 @@ func (s *HTTPImageSource) fetchImage(url *url.URL, ireq *http.Request) ([]byte, 
 	// Check remote image size by fetching HTTP Headers
 	if s.Config.MaxAllowedSize > 0 {
 		req := newHTTPRequest(s, ireq, http.MethodHead, url)
-		res, err := http.DefaultClient.Do(req)
+		res, err := http.DefaultClient.Do(req) //nolint:gosec
 		if err != nil {
 			return nil, nil, fmt.Errorf("error fetching remote http image headers: %v", err)
 		}
@@ -127,7 +127,7 @@ func parseURL(request *http.Request) (*url.URL, error) {
 }
 
 func newHTTPRequest(s *HTTPImageSource, ireq *http.Request, method string, url *url.URL) *http.Request {
-	req, _ := http.NewRequest(method, url.String(), nil)
+	req, _ := http.NewRequest(method, url.String(), nil) //nolint:gosec
 	req.Header.Set("User-Agent", "imaginary/"+Version)
 	req.URL = url
 

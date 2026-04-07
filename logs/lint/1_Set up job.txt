@@ -1,0 +1,33 @@
+﻿2026-04-07T17:57:00.0834522Z Current runner version: '2.333.1'
+2026-04-07T17:57:00.0858031Z ##[group]Runner Image Provisioner
+2026-04-07T17:57:00.0858960Z Hosted Compute Agent
+2026-04-07T17:57:00.0859791Z Version: 20260213.493
+2026-04-07T17:57:00.0860387Z Commit: 5c115507f6dd24b8de37d8bbe0bb4509d0cc0fa3
+2026-04-07T17:57:00.0861163Z Build Date: 2026-02-13T00:28:41Z
+2026-04-07T17:57:00.0861829Z Worker ID: {cb343c05-84e8-44ac-ba7b-a50aa1b1a805}
+2026-04-07T17:57:00.0862476Z Azure Region: westcentralus
+2026-04-07T17:57:00.0863091Z ##[endgroup]
+2026-04-07T17:57:00.0864449Z ##[group]Operating System
+2026-04-07T17:57:00.0865065Z Ubuntu
+2026-04-07T17:57:00.0865637Z 24.04.4
+2026-04-07T17:57:00.0866056Z LTS
+2026-04-07T17:57:00.0866503Z ##[endgroup]
+2026-04-07T17:57:00.0866995Z ##[group]Runner Image
+2026-04-07T17:57:00.0867548Z Image: ubuntu-24.04
+2026-04-07T17:57:00.0868014Z Version: 20260329.72.1
+2026-04-07T17:57:00.0869292Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260329.72/images/ubuntu/Ubuntu2404-Readme.md
+2026-04-07T17:57:00.0870949Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260329.72
+2026-04-07T17:57:00.0871908Z ##[endgroup]
+2026-04-07T17:57:00.0872844Z ##[group]GITHUB_TOKEN Permissions
+2026-04-07T17:57:00.0874563Z Contents: read
+2026-04-07T17:57:00.0875275Z Metadata: read
+2026-04-07T17:57:00.0875748Z ##[endgroup]
+2026-04-07T17:57:00.0878081Z Secret source: Actions
+2026-04-07T17:57:00.0878905Z Prepare workflow directory
+2026-04-07T17:57:00.1234930Z Prepare all required actions
+2026-04-07T17:57:00.1270067Z Getting action download info
+2026-04-07T17:57:00.6223408Z Download action repository 'step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0' (SHA:0634a2670c59f64b4a01f0f96f84700a4088b9f0)
+2026-04-07T17:57:01.8856359Z Download action repository 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683' (SHA:11bd71901bbe5b1630ceea73d27597364c9af683)
+2026-04-07T17:57:01.9597207Z Download action repository 'actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5' (SHA:d35c59abb061a4a6fb18e82ac0862c26744d6ab5)
+2026-04-07T17:57:02.9947263Z Download action repository 'golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9' (SHA:4afd733a84b1f43292c63897423277bb7f4313a9)
+2026-04-07T17:57:04.1448091Z Complete job name: lint
