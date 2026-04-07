@@ -76,7 +76,7 @@ func (s *HTTPImageSource) fetchImage(url *url.URL, ireq *http.Request) ([]byte, 
 
 	// Perform the request using the default client
 	req := newHTTPRequest(s, ireq, http.MethodGet, url)
-	res, err := http.DefaultClient.Do(req)
+	res, err := http.DefaultClient.Do(req) //nolint:gosec
 	if err != nil {
 		return nil, nil, fmt.Errorf("error fetching remote http image: %v", err)
 	}

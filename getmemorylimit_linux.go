@@ -54,7 +54,6 @@ func getMemoryLimit() (int64, error) {
 		}
 		return 0, fmt.Errorf("failed to determine memory limit")
 	}
-	return 0, fmt.Errorf("failed to determine memory limit")
 }
 
 // getPhysicalMemoryLimit returns the total physical memory of the host in bytes
