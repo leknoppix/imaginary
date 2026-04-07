@@ -1,3 +1,21 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-only
+ *
+ * Copyright (c) 2025 sycured
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package main
 
 import (
@@ -347,7 +365,7 @@ func coerceInterlace(io *ImageOptions, param interface{}) (err error) {
 
 func coercePalette(io *ImageOptions, param interface{}) (err error) {
 	io.Palette, err = coerceTypeBool(param)
-	io.IsDefinedField.Palette = true
+	io.Palette = true
 	return err
 }
 
@@ -435,12 +453,12 @@ func parseColorspace(val string) bimg.Interpretation {
 }
 
 func parseColor(val string) []uint8 {
-	const max float64 = 255
+	const maxValue float64 = 255
 	var buf []uint8
 	if val != "" {
 		for _, num := range strings.Split(val, ",") {
 			n, _ := strconv.ParseUint(strings.Trim(num, " "), 10, 8)
-			buf = append(buf, uint8(math.Min(float64(n), max)))
+			buf = append(buf, uint8(math.Min(float64(n), maxValue)))
 		}
 	}
 	return buf

@@ -1,3 +1,21 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-only
+ *
+ * Copyright (c) 2025 sycured
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package main
 
 import (
@@ -6,15 +24,17 @@ import (
 	"github.com/h2non/bimg"
 )
 
+const multipartFormData = "multipart/form-data; encoding=utf-8"
+
 func TestExtractImageTypeFromMime(t *testing.T) {
 	files := []struct {
 		mime     string
 		expected string
 	}{
-		{"image/jpeg", "jpeg"},
+		{ImageJPEG, JPEG},
 		{"/png", "png"},
-		{"png", ""},
-		{"multipart/form-data; encoding=utf-8", "form-data"},
+		{PNG, ""},
+		{multipartFormData, "form-data"},
 		{"", ""},
 	}
 
@@ -30,15 +50,17 @@ func TestIsImageTypeSupported(t *testing.T) {
 		name     string
 		expected bool
 	}{
-		{"image/jpeg", true},
-		{"image/png", true},
-		{"image/webp", true},
+		{ImageJPEG, true},
+		{ImageAVIF, true},
+		{ImagePNG, true},
+		{ImageWebP, true},
 		{"IMAGE/JPEG", true},
-		{"png", false},
-		{"multipart/form-data; encoding=utf-8", false},
+		{PNG, false},
+		{multipartFormData, false},
 		{"application/json", false},
+		{ImageAVIF, bimg.IsImageTypeSupportedByVips(bimg.AVIF).Load},
 		{"image/gif", bimg.IsImageTypeSupportedByVips(bimg.GIF).Load},
-		{"image/svg+xml", bimg.IsImageTypeSupportedByVips(bimg.SVG).Load},
+		{ImageSVG, bimg.IsImageTypeSupportedByVips(bimg.SVG).Load},
 		{"image/svg", bimg.IsImageTypeSupportedByVips(bimg.SVG).Load},
 		{"image/tiff", bimg.IsImageTypeSupportedByVips(bimg.TIFF).Load},
 		{"application/pdf", bimg.IsImageTypeSupportedByVips(bimg.PDF).Load},
@@ -59,14 +81,15 @@ func TestImageType(t *testing.T) {
 		name     string
 		expected bimg.ImageType
 	}{
-		{"jpeg", bimg.JPEG},
-		{"png", bimg.PNG},
-		{"webp", bimg.WEBP},
+		{AVIF, bimg.AVIF},
+		{JPEG, bimg.JPEG},
+		{PNG, bimg.PNG},
+		{WebP, bimg.WEBP},
 		{"tiff", bimg.TIFF},
 		{"gif", bimg.GIF},
-		{"svg", bimg.SVG},
+		{SVG, bimg.SVG},
 		{"pdf", bimg.PDF},
-		{"multipart/form-data; encoding=utf-8", bimg.UNKNOWN},
+		{multipartFormData, bimg.UNKNOWN},
 		{"json", bimg.UNKNOWN},
 		{"text", bimg.UNKNOWN},
 		{"blablabla", bimg.UNKNOWN},
@@ -85,14 +108,15 @@ func TestGetImageMimeType(t *testing.T) {
 		name     bimg.ImageType
 		expected string
 	}{
-		{bimg.JPEG, "image/jpeg"},
-		{bimg.PNG, "image/png"},
-		{bimg.WEBP, "image/webp"},
+		{bimg.AVIF, ImageAVIF},
+		{bimg.JPEG, ImageJPEG},
+		{bimg.PNG, ImagePNG},
+		{bimg.WEBP, ImageWebP},
 		{bimg.TIFF, "image/tiff"},
 		{bimg.GIF, "image/gif"},
 		{bimg.PDF, "application/pdf"},
-		{bimg.SVG, "image/svg+xml"},
-		{bimg.UNKNOWN, "image/jpeg"},
+		{bimg.SVG, ImageSVG},
+		{bimg.UNKNOWN, ImageJPEG},
 	}
 
 	for _, file := range files {

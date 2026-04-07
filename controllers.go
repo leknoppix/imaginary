@@ -1,3 +1,21 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-only
+ *
+ * Copyright (c) 2025 sycured
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package main
 
 import (
@@ -13,6 +31,25 @@ import (
 	"github.com/h2non/filetype"
 )
 
+const (
+	ContentType     = "Content-Type"
+	ContentTypeJSON = "application/json"
+	ImageAVIF       = "image/avif"
+	ImageJPEG       = "image/jpeg"
+	ImagePNG        = "image/png"
+	ImageSVG        = "image/svg+xml"
+	ImageWebP       = "image/webp"
+	AVIF            = "avif"
+	JPEG            = "jpeg"
+	PNG             = "png"
+	WebP            = "webp"
+)
+
+// @Summary Index page
+// @Description Returns information about the service
+// @Produce json
+// @Success 200 {object} Versions
+// @Router / [get]
 func indexController(o ServerOptions) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != path.Join(o.PathPrefix, "/") {
@@ -25,18 +62,24 @@ func indexController(o ServerOptions) func(w http.ResponseWriter, r *http.Reques
 			bimg.Version,
 			bimg.VipsVersion,
 		})
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set(ContentType, ContentTypeJSON)
 		_, _ = w.Write(body)
 	}
 }
 
-func healthController(w http.ResponseWriter, r *http.Request) {
+// @Summary Health check
+// @Description Returns the health status of the service
+// @Produce json
+// @Success 200 {object} HealthStats
+// @Router /health [get]
+func healthController(w http.ResponseWriter, _ *http.Request) {
 	health := GetHealthStats()
 	body, _ := json.Marshal(health)
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(ContentType, ContentTypeJSON)
 	_, _ = w.Write(body)
 }
 
+// imageController is a generic handler for image processing operations
 func imageController(o ServerOptions, operation Operation) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		var imageSource = MatchSource(req)
@@ -45,7 +88,7 @@ func imageController(o ServerOptions, operation Operation) func(http.ResponseWri
 			return
 		}
 
-		buf, err := imageSource.GetImage(req)
+		buf, srcResponseHeaders, err := imageSource.GetImage(req)
 		if err != nil {
 			if xerr, ok := err.(Error); ok {
 				ErrorReply(req, w, xerr, o)
@@ -60,7 +103,20 @@ func imageController(o ServerOptions, operation Operation) func(http.ResponseWri
 			return
 		}
 
+		if len(o.SrcResponseHeaders) > 0 {
+			setSrcResponseHeaders(w, srcResponseHeaders, o.SrcResponseHeaders)
+		}
+
 		imageHandler(w, req, buf, operation, o)
+	}
+}
+
+func setSrcResponseHeaders(w http.ResponseWriter, responseHeaders http.Header, wantedHeaders []string) {
+	for _, wanted := range wantedHeaders {
+		v := responseHeaders.Get(wanted)
+		if len(v) > 0 {
+			w.Header().Set(wanted, v)
+		}
 	}
 }
 
@@ -68,12 +124,14 @@ func determineAcceptMimeType(accept string) string {
 	for _, v := range strings.Split(accept, ",") {
 		mediaType, _, _ := mime.ParseMediaType(v)
 		switch mediaType {
-		case "image/webp":
-			return "webp"
-		case "image/png":
-			return "png"
-		case "image/jpeg":
-			return "jpeg"
+		case ImageAVIF:
+			return AVIF
+		case ImageJPEG:
+			return JPEG
+		case ImagePNG:
+			return PNG
+		case ImageWebP:
+			return WebP
 		}
 	}
 
@@ -81,74 +139,89 @@ func determineAcceptMimeType(accept string) string {
 }
 
 func imageHandler(w http.ResponseWriter, r *http.Request, buf []byte, operation Operation, o ServerOptions) {
-	// Infer the body MIME type via mime sniff algorithm
-	mimeType := http.DetectContentType(buf)
+	mimeType, err := inferMimeType(buf)
+	if err != nil || !IsImageMimeTypeSupported(mimeType) {
+		ErrorReply(r, w, ErrUnsupportedMedia, o)
+		return
+	}
 
-	// If cannot infer the type, infer it via magic numbers
+	opts, vary, err := processImageOptions(r)
+	if err != nil {
+		ErrorReply(r, w, NewError(err.Error(), http.StatusBadRequest), o)
+		return
+	}
+
+	if sizeErr := validateImageSize(buf, o); sizeErr != nil {
+		ErrorReply(r, w, NewError(sizeErr.Error(), http.StatusBadRequest), o)
+		return
+	}
+
+	image, operationErr := operation.Run(buf, opts)
+	if operationErr != nil {
+		handleProcessingError(w, r, vary, operationErr, o)
+		return
+	}
+
+	sendResponse(w, image, vary, o)
+}
+
+//nolint:unparam
+func inferMimeType(buf []byte) (string, error) {
+	mimeType := http.DetectContentType(buf)
 	if mimeType == "application/octet-stream" {
 		kind, err := filetype.Get(buf)
 		if err == nil && kind.MIME.Value != "" {
 			mimeType = kind.MIME.Value
 		}
 	}
-
-	// Infer text/plain responses as potential SVG image
-	if strings.Contains(mimeType, "text/plain") && len(buf) > 8 {
-		if bimg.IsSVGImage(buf) {
-			mimeType = "image/svg+xml"
-		}
+	if mimeType == "image/bmp" {
+		mimeType = "image/magick"
 	}
-
-	// Finally check if image MIME type is supported
-	if !IsImageMimeTypeSupported(mimeType) {
-		ErrorReply(r, w, ErrUnsupportedMedia, o)
-		return
+	if strings.Contains(mimeType, "text/plain") && len(buf) > 8 && bimg.IsSVGImage(buf) {
+		mimeType = ImageSVG
 	}
+	return mimeType, nil
+}
 
+func processImageOptions(r *http.Request) (ImageOptions, string, error) {
 	opts, err := buildParamsFromQuery(r.URL.Query())
 	if err != nil {
-		ErrorReply(r, w, NewError("Error while processing parameters, "+err.Error(), http.StatusBadRequest), o)
-		return
+		return ImageOptions{}, "", NewError("Error while processing parameters, "+err.Error(), http.StatusBadRequest)
 	}
 
 	vary := ""
 	if opts.Type == "auto" {
 		opts.Type = determineAcceptMimeType(r.Header.Get("Accept"))
-		vary = "Accept" // Ensure caches behave correctly for negotiated content
+		vary = "Accept"
 	} else if opts.Type != "" && ImageType(opts.Type) == 0 {
-		ErrorReply(r, w, ErrOutputFormat, o)
-		return
+		return ImageOptions{}, "", ErrOutputFormat
 	}
+	return opts, vary, nil
+}
 
+func validateImageSize(buf []byte, o ServerOptions) error {
 	sizeInfo, err := bimg.Size(buf)
-
 	if err != nil {
-		ErrorReply(r, w, NewError("Error while processing the image: "+err.Error(), http.StatusBadRequest), o)
-		return
+		return NewError("Error while processing the image: "+err.Error(), http.StatusBadRequest)
 	}
-
-	// https://en.wikipedia.org/wiki/Image_resolution#Pixel_count
 	imgResolution := float64(sizeInfo.Width) * float64(sizeInfo.Height)
-
 	if (imgResolution / 1000000) > o.MaxAllowedPixels {
-		ErrorReply(r, w, ErrResolutionTooBig, o)
-		return
+		return ErrResolutionTooBig
 	}
+	return nil
+}
 
-	image, err := operation.Run(buf, opts)
-	if err != nil {
-		// Ensure the Vary header is set when an error occurs
-		if vary != "" {
-			w.Header().Set("Vary", vary)
-		}
-		ErrorReply(r, w, NewError("Error while processing the image: "+err.Error(), http.StatusBadRequest), o)
-		return
+func handleProcessingError(w http.ResponseWriter, r *http.Request, vary string, err error, o ServerOptions) {
+	if vary != "" {
+		w.Header().Set("Vary", vary)
 	}
+	ErrorReply(r, w, NewError("Error while processing the image: "+err.Error(), http.StatusBadRequest), o)
+}
 
-	// Expose Content-Length response header
+func sendResponse(w http.ResponseWriter, image Image, vary string, o ServerOptions) {
 	w.Header().Set("Content-Length", strconv.Itoa(len(image.Body)))
-	w.Header().Set("Content-Type", image.Mime)
-	if image.Mime != "application/json" && o.ReturnSize {
+	w.Header().Set(ContentType, image.Mime)
+	if image.Mime != ContentTypeJSON && o.ReturnSize {
 		meta, err := bimg.Metadata(image.Body)
 		if err == nil {
 			w.Header().Set("Image-Width", strconv.Itoa(meta.Size.Width))
@@ -161,6 +234,10 @@ func imageHandler(w http.ResponseWriter, r *http.Request, buf []byte, operation 
 	_, _ = w.Write(image.Body)
 }
 
+// @Summary HTML form for image processing
+// @Description Returns an HTML form for uploading and processing images
+// @Produce html
+// @Router /form [get]
 func formController(o ServerOptions) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		operations := []struct {
@@ -185,7 +262,7 @@ func formController(o ServerOptions) func(w http.ResponseWriter, r *http.Request
 			{"Convert format", "convert", "type=png"},
 			{"Image metadata", "info", ""},
 			{"Gaussian blur", "blur", "sigma=15.0&minampl=0.2"},
-			{"Pipeline (image reduction via multiple transformations)", "pipeline", "operations=%5B%7B%22operation%22:%20%22crop%22,%20%22params%22:%20%7B%22width%22:%20300,%20%22height%22:%20260%7D%7D,%20%7B%22operation%22:%20%22convert%22,%20%22params%22:%20%7B%22type%22:%20%22webp%22%7D%7D%5D"},
+			{"Pipeline (image reduction via multiple transformations)", "pipeline", "operations=%5B%7B%22operation%22:%20%22crop%22,%20%22params%22:%20%7B%22width%22:%20300,%20%22height%22:%20260%7D%7D,%20%7B%22operation%22:%20%22convert%22,%20%22params%22:%20%7B%22type%22:%20%22webp%22%7D%7D%5D"}, //nolint:lll
 		}
 
 		html := "<html><body>"
@@ -201,7 +278,7 @@ func formController(o ServerOptions) func(w http.ResponseWriter, r *http.Request
 
 		html += "</body></html>"
 
-		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set(ContentType, "text/html")
 		_, _ = w.Write([]byte(html))
 	}
 }

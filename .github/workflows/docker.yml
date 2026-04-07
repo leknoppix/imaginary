@@ -1,43 +1,88 @@
-name: Publication Docker image
+name: Docker image
 
-on: [push]
+on:
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: true
+      commit:
+        type: string
+        required: true
+
+permissions:
+  contents: read
 
 jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Login Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: all
-    - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@v1
-      id: buildx
-    - name: Cache Docker Image Layers
-      uses: actions/cache@v2
-      with:
-        path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-buildx-
-    - name: Build and Push Docker Image
-      uses: docker/build-push-action@v2
-      id: docker_build
-      with:
-        context: ./
-        file: ./Dockerfile
-        builder: ${{ steps.buildx.outputs.name }}
-        platforms: linux/amd64, linux/arm64, linux/aarch64
-        push: true
-        tags: ${{ secrets.DOCKER_USERNAME }}/imaginaryprototype:latest
-        cache-from: type=local,src=/tmp/.buildx-cache
-        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-    - name: Verify
-      run: echo ${{ steps.docker_build.outputs.digest }}
+      - name: Harden the runner
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            9236a389bd48b984df91adc1bc924620.r2.cloudflarestorage.com:443
+            apk.cgr.dev:443
+            auth.docker.io:443
+            cgr.dev:443
+            deb.debian.org:80
+            debian.map.fastlydns.net:80
+            github.com:443
+            index.docker.io:443
+            packages.wolfi.dev:443
+            production.cloudflare.docker.com:443
+            proxy.golang.org:443
+            registry-1.docker.io:443
+            storage.googleapis.com:443
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.commit }}
+      - name: Set Docker Tag
+        id: prep
+        run: |
+          DOCKER_TAG=${INPUT_BRANCH//\//-}
+          echo "DOCKER_TAG=${DOCKER_TAG}" >> $GITHUB_ENV
+        env:
+          INPUT_BRANCH: ${{ inputs.branch }}
+      - name: Login Docker Hub
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
+        with:
+          platforms: all
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+        id: buildx
+      - name: Cache Docker Image Layers
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ inputs.commit }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        id: docker_build
+        env:
+          BUILDKIT_SBOM_SCAN_STAGE: true
+        with:
+          context: ./
+          file: ./Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          platforms: linux/amd64, linux/arm64
+          push: true
+          provenance: mode=max
+          sbom: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/imaginary:${{ env.DOCKER_TAG }}
+          build-args: |
+            IMAGINARY_VERSION=${{ env.DOCKER_TAG }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+      - name: Verify
+        run: echo ${{ steps.docker_build.outputs.digest }}

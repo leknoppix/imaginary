@@ -1,3 +1,21 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-only
+ *
+ * Copyright (c) 2025 sycured
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package main
 
 import (
@@ -89,12 +107,17 @@ func transformByAspectRatio(params map[string]interface{}) (width, height int) {
 	}
 
 	if width != 0 {
-		height = width / aspectRatio["width"] * aspectRatio["height"]
+		height = calculateFromAspectRatio(width, aspectRatio["height"], aspectRatio["width"])
 	} else {
-		width = height / aspectRatio["height"] * aspectRatio["width"]
+		width = calculateFromAspectRatio(height, aspectRatio["width"], aspectRatio["height"])
 	}
 
 	return
+}
+
+func calculateFromAspectRatio(x int, ratioA int, ratioB int) int {
+	res := float32(x) * (float32(ratioA) / float32(ratioB))
+	return int(res)
 }
 
 func parseAspectRatio(val string) map[string]int {

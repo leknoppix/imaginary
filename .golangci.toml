@@ -1,45 +1,84 @@
+version = '2'
+
 [run]
-    concurrency = 4
-    tests = false
-
-[linters-settings]
-    [linters-settings.gocyclo]
-        min-complexity = 20
-
-    [linters-settings.goconst]
-        min-len = 2
-        min-occurrences = 2
-
-    [linters-settings.misspell]
-        locale = "US"
+concurrency = 4
+tests = false
 
 [linters]
-    # White-listing, to be more CI safe.
-    disable-all = true
+default = 'none'
+enable = [
+  'copyloopvar',
+  'depguard',
+  'dupl',
+  'errcheck',
+  'ginkgolinter',
+  'goconst',
+  'gocritic',
+  'gocyclo',
+  'gosec',
+  'govet',
+  'ineffassign',
+  'lll',
+  'misspell',
+  'nakedret',
+  'prealloc',
+  'revive',
+  'staticcheck',
+  'unconvert',
+  'unparam',
+  'unused'
+]
 
-    # @see https://github.com/golangci/golangci-lint#enabled-by-default-linters
-    enable = [
-        "staticcheck",
-        "gosimple",
-        "ineffassign",
-        "typecheck",
-        "govet",
-#        "errcheck",
-        "unused",
-        "structcheck",
-        "varcheck",
-        "deadcode",
+[linters.settings]
+[linters.settings.depguard]
+[linters.settings.depguard.rules]
+[linters.settings.depguard.rules.main]
+allow = [
+  '$gostd',
+  'github.com/bytedance/gopkg',
+  'github.com/h2non/bimg',
+  'github.com/h2non/filetype',
+  'github.com/prometheus/client_golang',
+  'github.com/quic-go/quic-go',
+  'github.com/rs/cors',
+  'github.com/swaggo/http-swagger',
+  'github.com/sycured/imaginary/docs',
+  'github.com/throttled/throttled',
+  'golang.org/x/sys/unix'
+]
 
-        "stylecheck",
-        "gosec",
-        "interfacer",
-        "unconvert",
-#        "goconst",
-        "gocyclo",
-#        "maligned",
-        "depguard",
-        "misspell",
-        "unparam",
-        "scopelint", # Would like to ignore *_test.go files, but can't atm.
-        "gocritic",
-    ]
+[linters.settings.goconst]
+min-len = 2
+min-occurrences = 2
+
+[linters.settings.gocyclo]
+min-complexity = 20
+
+[linters.settings.misspell]
+locale = 'US'
+
+[linters.settings.revive]
+[[linters.settings.revive.rules]]
+name = 'comment-spacings'
+
+[linters.exclusions]
+generated = 'lax'
+paths = [
+  'third_party$',
+  'builtin$',
+  'examples$'
+]
+
+[formatters]
+enable = [
+  'gofmt',
+  'goimports'
+]
+
+[formatters.exclusions]
+generated = 'lax'
+paths = [
+  'third_party$',
+  'builtin$',
+  'examples$'
+]

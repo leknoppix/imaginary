@@ -1,0 +1,5 @@
+spec: v0.6
+name: imaginary
+runtime: unikraft.org/base:latest
+rootfs: ./Dockerfile
+cmd: ["/usr/local/bin/imaginary"]

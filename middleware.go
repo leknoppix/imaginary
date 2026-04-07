@@ -1,3 +1,21 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-only
+ *
+ * Copyright (c) 2025 sycured
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package main
 
 import (
@@ -11,12 +29,14 @@ import (
 
 	"github.com/h2non/bimg"
 	"github.com/rs/cors"
-	"gopkg.in/throttled/throttled.v2"
-	"gopkg.in/throttled/throttled.v2/store/memstore"
+	"github.com/throttled/throttled/v2"
+	"github.com/throttled/throttled/v2/store/memstore"
 )
 
 func Middleware(fn func(http.ResponseWriter, *http.Request), o ServerOptions) http.Handler {
 	next := http.Handler(http.HandlerFunc(fn))
+
+	next = metrics(next)
 
 	if len(o.Endpoints) > 0 {
 		next = filterEndpoint(next, o)
@@ -31,7 +51,7 @@ func Middleware(fn func(http.ResponseWriter, *http.Request), o ServerOptions) ht
 		next = authorizeClient(next, o)
 	}
 	if o.HTTPCacheTTL >= 0 {
-		next = setCacheHeaders(next, o.HTTPCacheTTL)
+		next = setCacheHeaders(next, o.HTTPCacheTTL, o.SrcResponseHeaders)
 	}
 
 	return validate(defaultHeaders(next), o)
@@ -71,13 +91,15 @@ func throttle(next http.Handler, o ServerOptions) http.Handler {
 		return throttleError(err)
 	}
 
+	gcraStore := throttled.WrapStoreWithContext(store)
+
 	quota := throttled.RateQuota{MaxRate: throttled.PerSec(o.Concurrency), MaxBurst: o.Burst}
-	rateLimiter, err := throttled.NewGCRARateLimiter(store, quota)
+	rateLimiter, err := throttled.NewGCRARateLimiterCtx(gcraStore, quota)
 	if err != nil {
 		return throttleError(err)
 	}
 
-	httpRateLimiter := throttled.HTTPRateLimiter{
+	httpRateLimiter := throttled.HTTPRateLimiterCtx{
 		RateLimiter: rateLimiter,
 		VaryBy:      &throttled.VaryBy{Method: true},
 	}
@@ -131,12 +153,21 @@ func authorizeClient(next http.Handler, o ServerOptions) http.Handler {
 
 func defaultHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Server", fmt.Sprintf("imaginary %s (bimg %s)", Version, bimg.Version))
+		w.Header().Set("Server", fmt.Sprintf("imaginary %s (bimg %s, vips %s) ", Version, bimg.Version, bimg.VipsVersion))
 		next.ServeHTTP(w, r)
 	})
 }
 
-func setCacheHeaders(next http.Handler, ttl int) http.Handler {
+func insensitiveArrayContains(haystack []string, needle string) bool {
+	for _, value := range haystack {
+		if strings.EqualFold(value, needle) {
+			return true
+		}
+	}
+	return false
+}
+
+func setCacheHeaders(next http.Handler, ttl int, srcResponseHeaders []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer next.ServeHTTP(w, r)
 
@@ -144,10 +175,14 @@ func setCacheHeaders(next http.Handler, ttl int) http.Handler {
 			return
 		}
 
+		if insensitiveArrayContains(srcResponseHeaders, "cache-control") && len(w.Header().Get("cache-control")) > 0 {
+			return
+		}
+
 		ttlDiff := time.Duration(ttl) * time.Second
 		expires := time.Now().Add(ttlDiff)
 
-		w.Header().Add("Expires", strings.Replace(expires.Format(time.RFC1123), "UTC", "GMT", -1))
+		w.Header().Add("Expires", strings.ReplaceAll(expires.Format(time.RFC1123), "UTC", "GMT"))
 		w.Header().Add("Cache-Control", getCacheControl(ttl))
 	})
 }
@@ -188,5 +223,18 @@ func validateURLSignature(next http.Handler, o ServerOptions) http.Handler {
 		}
 
 		next.ServeHTTP(w, r)
+	})
+}
+
+func metrics(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		rw := NewMetricsResponseWriter(w)
+		next.ServeHTTP(rw, r)
+		lvs := []string{rw.Code, r.RequestURI, r.Method}
+		reqCount.WithLabelValues(lvs...).Inc()
+		reqDuration.WithLabelValues(lvs...).Observe(time.Since(start).Seconds())
+		reqSizeBytes.WithLabelValues(lvs...).Observe(calcRequestSize(r))
+		respSizeBytes.WithLabelValues(lvs...).Observe(float64(rw.Length))
 	})
 }

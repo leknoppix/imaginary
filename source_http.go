@@ -1,8 +1,27 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-only
+ *
+ * Copyright (c) 2025 sycured
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -24,33 +43,34 @@ func (s *HTTPImageSource) Matches(r *http.Request) bool {
 	return r.Method == http.MethodGet && r.URL.Query().Get(URLQueryKey) != ""
 }
 
-func (s *HTTPImageSource) GetImage(req *http.Request) ([]byte, error) {
+func (s *HTTPImageSource) GetImage(req *http.Request) ([]byte, http.Header, error) {
 	u, err := parseURL(req)
 	if err != nil {
-		return nil, ErrInvalidImageURL
+		return nil, nil, ErrInvalidImageURL
 	}
 	if shouldRestrictOrigin(u, s.Config.AllowedOrigins) {
-		return nil, fmt.Errorf("not allowed remote URL origin: %s%s", u.Host, u.Path)
+		return nil, nil, fmt.Errorf("not allowed remote URL origin: %s%s", u.Host, u.Path)
 	}
 	return s.fetchImage(u, req)
 }
 
-func (s *HTTPImageSource) fetchImage(url *url.URL, ireq *http.Request) ([]byte, error) {
+func (s *HTTPImageSource) fetchImage(url *url.URL, ireq *http.Request) ([]byte, http.Header, error) {
 	// Check remote image size by fetching HTTP Headers
 	if s.Config.MaxAllowedSize > 0 {
 		req := newHTTPRequest(s, ireq, http.MethodHead, url)
 		res, err := http.DefaultClient.Do(req)
 		if err != nil {
-			return nil, fmt.Errorf("error fetching remote http image headers: %v", err)
+			return nil, nil, fmt.Errorf("error fetching remote http image headers: %v", err)
 		}
 		_ = res.Body.Close()
-		if res.StatusCode < 200 && res.StatusCode > 206 {
-			return nil, NewError(fmt.Sprintf("error fetching remote http image headers: (status=%d) (url=%s)", res.StatusCode, req.URL.String()), res.StatusCode)
+		if res.StatusCode < 200 || res.StatusCode > 206 {
+			return nil, nil, NewError(fmt.Sprintf(
+				"error fetching remote http image headers: (status=%d) (url=%s)", res.StatusCode, req.URL.String()), res.StatusCode)
 		}
 
 		contentLength, _ := strconv.Atoi(res.Header.Get("Content-Length"))
 		if contentLength > s.Config.MaxAllowedSize {
-			return nil, fmt.Errorf("Content-Length %d exceeds maximum allowed %d bytes", contentLength, s.Config.MaxAllowedSize)
+			return nil, nil, fmt.Errorf("Content-Length %d exceeds maximum allowed %d bytes", contentLength, s.Config.MaxAllowedSize) //nolint:lll
 		}
 	}
 
@@ -58,19 +78,22 @@ func (s *HTTPImageSource) fetchImage(url *url.URL, ireq *http.Request) ([]byte, 
 	req := newHTTPRequest(s, ireq, http.MethodGet, url)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error fetching remote http image: %v", err)
+		return nil, nil, fmt.Errorf("error fetching remote http image: %v", err)
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
 	if res.StatusCode != 200 {
-		return nil, NewError(fmt.Sprintf("error fetching remote http image: (status=%d) (url=%s)", res.StatusCode, req.URL.String()), res.StatusCode)
+		return nil, nil, NewError(
+			fmt.Sprintf("error fetching remote http image: (status=%d) (url=%s)", res.StatusCode, req.URL.String()), res.StatusCode) //nolint:lll
 	}
 
 	// Read the body
-	buf, err := ioutil.ReadAll(res.Body)
+	buf, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create image from response body: %s (url=%s)", req.URL.String(), err)
+		return nil, nil, fmt.Errorf("unable to create image from response body: %s (url=%s)", req.URL.String(), err)
 	}
-	return buf, nil
+	return buf, res.Header, nil
 }
 
 func (s *HTTPImageSource) setAuthorizationHeader(req *http.Request, ireq *http.Request) {
@@ -96,7 +119,11 @@ func (s *HTTPImageSource) setForwardHeaders(req *http.Request, ireq *http.Reques
 }
 
 func parseURL(request *http.Request) (*url.URL, error) {
-	return url.Parse(request.URL.Query().Get(URLQueryKey))
+	urlParam := request.URL.Query().Get(URLQueryKey)
+	if urlParam == "" {
+		return nil, fmt.Errorf("empty URL parameter")
+	}
+	return url.Parse(urlParam)
 }
 
 func newHTTPRequest(s *HTTPImageSource, ireq *http.Request, method string, url *url.URL) *http.Request {
@@ -113,6 +140,10 @@ func newHTTPRequest(s *HTTPImageSource, ireq *http.Request, method string, url *
 		s.setAuthorizationHeader(req, ireq)
 	}
 
+	if s.Config.AllowInsecureSSL {
+		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true} //nolint:gosec
+	}
+
 	return req
 }
 
@@ -122,30 +153,34 @@ func shouldRestrictOrigin(url *url.URL, origins []*url.URL) bool {
 	}
 
 	for _, origin := range origins {
-		if origin.Host == url.Host {
-			if strings.HasPrefix(url.Path, origin.Path) {
-				return false
-			}
-		}
-
-		if origin.Host[0:2] == "*." {
-			// Testing if "*.example.org" matches "example.org"
-			if url.Host == origin.Host[2:] {
-				if strings.HasPrefix(url.Path, origin.Path) {
-					return false
-				}
-			}
-
-			// Testing if "*.example.org" matches "foo.example.org"
-			if strings.HasSuffix(url.Host, origin.Host[1:]) {
-				if strings.HasPrefix(url.Path, origin.Path) {
-					return false
-				}
-			}
+		if isExactMatch(url, origin) || isSubdomainMatch(url, origin) {
+			return false
 		}
 	}
 
 	return true
+}
+
+func isExactMatch(url *url.URL, origin *url.URL) bool {
+	return origin.Host == url.Host && strings.HasPrefix(url.Path, origin.Path)
+}
+
+func isSubdomainMatch(url *url.URL, origin *url.URL) bool {
+	if len(origin.Host) < 3 || origin.Host[0:2] != "*." {
+		return false
+	}
+
+	// Check if "*.example.org" matches "example.org"
+	if url.Host == origin.Host[2:] && strings.HasPrefix(url.Path, origin.Path) {
+		return true
+	}
+
+	// Check if "*.example.org" matches "foo.example.org"
+	if strings.HasSuffix(url.Host, origin.Host[1:]) && strings.HasPrefix(url.Path, origin.Path) {
+		return true
+	}
+
+	return false
 }
 
 func init() {

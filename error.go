@@ -1,3 +1,21 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-only
+ *
+ * Copyright (c) 2025 sycured
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package main
 
 import (
@@ -12,8 +30,8 @@ import (
 var (
 	ErrNotFound             = NewError("Not found", http.StatusNotFound)
 	ErrInvalidAPIKey        = NewError("Invalid or missing API key", http.StatusUnauthorized)
-	ErrMethodNotAllowed     = NewError("HTTP method not allowed. Try with a POST or GET method (-enable-url-source flag must be defined)", http.StatusMethodNotAllowed)
-	ErrGetMethodNotAllowed  = NewError("GET method not allowed. Make sure remote URL source is enabled by using the flag: -enable-url-source", http.StatusMethodNotAllowed)
+	ErrMethodNotAllowed     = NewError("HTTP method not allowed. Try with a POST or GET method (-enable-url-source flag must be defined)", http.StatusMethodNotAllowed)     //nolint:lll
+	ErrGetMethodNotAllowed  = NewError("GET method not allowed. Make sure remote URL source is enabled by using the flag: -enable-url-source", http.StatusMethodNotAllowed) //nolint:lll
 	ErrUnsupportedMedia     = NewError("Unsupported media type", http.StatusNotAcceptable)
 	ErrOutputFormat         = NewError("Unsupported output image format", http.StatusBadRequest)
 	ErrEmptyBody            = NewError("Empty or unreadable image", http.StatusBadRequest)
@@ -49,14 +67,14 @@ func (e Error) HTTPCode() int {
 }
 
 func NewError(err string, code int) Error {
-	err = strings.Replace(err, "\n", "", -1)
+	err = strings.ReplaceAll(err, "\n", "")
 	return Error{Message: err, Code: code}
 }
 
 func sendErrorResponse(w http.ResponseWriter, httpStatusCode int, err error) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(ContentType, ContentTypeJSON)
 	w.WriteHeader(httpStatusCode)
-	_, _ = w.Write([]byte(fmt.Sprintf("{\"error\":\"%s\", \"status\": %d}", err.Error(), httpStatusCode)))
+	_, _ = fmt.Fprintf(w, "{\"error\":\"%s\", \"status\": %d}", err.Error(), httpStatusCode)
 }
 
 func replyWithPlaceholder(req *http.Request, w http.ResponseWriter, errCaller Error, o ServerOptions) error {
@@ -91,7 +109,7 @@ func replyWithPlaceholder(req *http.Request, w http.ResponseWriter, errCaller Er
 	image := buf
 
 	// Placeholder image response
-	w.Header().Set("Content-Type", GetImageMimeType(bimg.DetermineImageType(image)))
+	w.Header().Set(ContentType, GetImageMimeType(bimg.DetermineImageType(image)))
 	w.Header().Set("Error", string(errCaller.JSON()))
 	if o.PlaceholderStatus != 0 {
 		w.WriteHeader(o.PlaceholderStatus)
@@ -110,7 +128,7 @@ func ErrorReply(req *http.Request, w http.ResponseWriter, err Error, o ServerOpt
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(ContentType, ContentTypeJSON)
 	w.WriteHeader(err.HTTPCode())
 	_, _ = w.Write(err.JSON())
 }

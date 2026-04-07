@@ -1,3 +1,21 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-only
+ *
+ * Copyright (c) 2025 sycured
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package main
 
 import (
@@ -5,6 +23,8 @@ import (
 
 	"github.com/h2non/bimg"
 )
+
+const SVG = "svg"
 
 // ExtractImageTypeFromMime returns the MIME image type.
 func ExtractImageTypeFromMime(mime string) string {
@@ -24,7 +44,7 @@ func IsImageMimeTypeSupported(mime string) bool {
 
 	// Some payloads may expose the MIME type for SVG as text/xml
 	if format == "xml" {
-		format = "svg"
+		format = SVG
 	}
 
 	return bimg.IsTypeNameSupported(format)
@@ -33,20 +53,22 @@ func IsImageMimeTypeSupported(mime string) bool {
 // ImageType returns the image type based on the given image type alias.
 func ImageType(name string) bimg.ImageType {
 	switch strings.ToLower(name) {
-	case "jpeg":
-		return bimg.JPEG
-	case "png":
-		return bimg.PNG
-	case "webp":
-		return bimg.WEBP
-	case "tiff":
-		return bimg.TIFF
+	case "avif":
+		return bimg.AVIF
 	case "gif":
 		return bimg.GIF
-	case "svg":
-		return bimg.SVG
+	case "jpeg":
+		return bimg.JPEG
 	case "pdf":
 		return bimg.PDF
+	case "png":
+		return bimg.PNG
+	case SVG:
+		return bimg.SVG
+	case "tiff":
+		return bimg.TIFF
+	case "webp":
+		return bimg.WEBP
 	default:
 		return bimg.UNKNOWN
 	}
@@ -55,18 +77,20 @@ func ImageType(name string) bimg.ImageType {
 // GetImageMimeType returns the MIME type based on the given image type code.
 func GetImageMimeType(code bimg.ImageType) string {
 	switch code {
-	case bimg.PNG:
-		return "image/png"
-	case bimg.WEBP:
-		return "image/webp"
-	case bimg.TIFF:
-		return "image/tiff"
+	case bimg.AVIF:
+		return "image/avif"
 	case bimg.GIF:
 		return "image/gif"
-	case bimg.SVG:
-		return "image/svg+xml"
 	case bimg.PDF:
 		return "application/pdf"
+	case bimg.PNG:
+		return "image/png"
+	case bimg.SVG:
+		return "image/svg+xml"
+	case bimg.TIFF:
+		return "image/tiff"
+	case bimg.WEBP:
+		return "image/webp"
 	default:
 		return "image/jpeg"
 	}
