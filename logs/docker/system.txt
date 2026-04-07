@@ -1,3 +1,0 @@
-2026-04-07T18:00:34.8030000Z Evaluating docker.if
-2026-04-07T18:00:34.8030000Z Evaluating: success()
-2026-04-07T18:00:34.8030000Z Result: false

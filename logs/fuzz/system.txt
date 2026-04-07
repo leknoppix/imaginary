@@ -1,8 +1,0 @@
-2026-04-07T17:41:08.7110000Z Evaluating fuzz.if
-2026-04-07T17:41:08.7110000Z Evaluating: success()
-2026-04-07T17:41:08.7110000Z Result: true
-2026-04-07T17:41:08.7110000Z Requested labels: ubuntu-latest
-2026-04-07T17:41:08.7110000Z Job defined at: leknoppix/imaginary/.github/workflows/ci.yml@refs/heads/docker
-2026-04-07T17:41:08.7110000Z Waiting for a runner to pick up this job...
-2026-04-07T17:41:09.1150000Z Job is waiting for a hosted runner to come online.
-2026-04-07T17:41:09.1170000Z Job is about to start running on the hosted runner: GitHub Actions 1000000231
