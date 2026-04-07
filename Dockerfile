@@ -4,8 +4,8 @@ ENV GOPATH=/go
 
 ARG IMAGINARY_VERSION=dev
 
-RUN apk upgrade --no-cache --no-interactive \
-    && apk add --no-cache --no-interactive ca-certificates jemalloc libvips-dev posix-libc-utils
+RUN apk upgrade --no-cache --no-interactive --retries 5 \
+    && apk add --no-cache --no-interactive --retries 5 ca-certificates jemalloc libvips-dev posix-libc-utils
 
 WORKDIR ${GOPATH}/src/github.com/sycured/imaginary
 
