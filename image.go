@@ -437,7 +437,7 @@ func Process(buf []byte, opts bimg.Options) (out Image, err error) {
 	ibuf, err := bimg.Resize(buf, opts)
 
 	// Handle specific type encode errors gracefully
-	if err != nil && strings.Contains(err.Error(), "encode") && (opts.Type == bimg.WEBP || opts.Type == bimg.HEIF) {
+	if err != nil && (strings.Contains(err.Error(), "encode") || strings.Contains(err.Error(), "Unsupported")) && (opts.Type == bimg.WEBP || opts.Type == bimg.HEIF || opts.Type == bimg.AVIF) {
 		// Always fallback to JPEG
 		opts.Type = bimg.JPEG
 		ibuf, err = bimg.Resize(buf, opts)

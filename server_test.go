@@ -183,8 +183,11 @@ func TestTypeAuto(t *testing.T) {
 		{"", "jpeg"},
 		{"image/webp,*/*", "webp"},
 		{"image/png,*/*", "png"},
+		{"image/avif,*/*", "avif"},
+		{"image/avif;q=0.9,image/webp;q=0.8,image/jpeg", "avif"},
 		{"image/webp;q=0.8,image/jpeg", "webp"},
-		{"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8", "webp"}, // Chrome
+		{"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8", "avif"}, // Chrome
+		{"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8", "webp"}, // Chrome without avif
 	}
 
 	for _, test := range cases {
@@ -222,8 +225,16 @@ func TestTypeAuto(t *testing.T) {
 			t.Error(err)
 		}
 
-		if bimg.DetermineImageTypeName(image) != test.expected {
-			t.Fatalf("Invalid image type")
+		expectedType := test.expected
+		if expectedType == "avif" && !bimg.IsImageTypeSupportedByVips(bimg.AVIF).Save {
+			expectedType = "jpeg"
+		}
+		if expectedType == "webp" && !bimg.IsImageTypeSupportedByVips(bimg.WEBP).Save {
+			expectedType = "jpeg"
+		}
+
+		if bimg.DetermineImageTypeName(image) != expectedType {
+			t.Fatalf("Invalid image type: expected %s, got %s", expectedType, bimg.DetermineImageTypeName(image))
 		}
 
 		if res.Header.Get("Vary") != "Accept" {

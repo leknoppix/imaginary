@@ -47,6 +47,8 @@ func ImageType(name string) bimg.ImageType {
 		return bimg.SVG
 	case "pdf":
 		return bimg.PDF
+	case "avif":
+		return bimg.AVIF
 	default:
 		return bimg.UNKNOWN
 	}
@@ -67,6 +69,8 @@ func GetImageMimeType(code bimg.ImageType) string {
 		return "image/svg+xml"
 	case bimg.PDF:
 		return "application/pdf"
+	case bimg.AVIF:
+		return "image/avif"
 	default:
 		return "image/jpeg"
 	}

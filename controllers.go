@@ -68,6 +68,8 @@ func determineAcceptMimeType(accept string) string {
 	for _, v := range strings.Split(accept, ",") {
 		mediaType, _, _ := mime.ParseMediaType(v)
 		switch mediaType {
+		case "image/avif":
+			return "avif"
 		case "image/webp":
 			return "webp"
 		case "image/png":
